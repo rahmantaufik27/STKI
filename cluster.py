@@ -60,21 +60,25 @@ class Clustering:
     # print(f"Calonski Harabasz Score: {sc}")
     # print(f"Davies Bouldin Score: {sd}")
 
-    return clusters, k, ss, sc, sd, df
+    return X, clusters, k, ss, sc, sd, df
 
   # VISUALIZATION THE CLUSTER
-  def visualizing_cluster(self, X, clusters):
-    U, S, V = randomized_svd(X, n_components=7)
+  def visualizing_cluster(self, x_vector, clusters, n_cluster, name):
+    # def get_cmap(n, name='hsv'):
+    #   return plt.cm.get_cmap(name, n)
+
+    U, S, V = randomized_svd(x_vector, n_components = n_cluster)
     X_topics=U*S
-    color = ['lightcoral', 'darkorange', 'olive', 'teal', 'violet', 'skyblue', 'red']
+    # cmap = get_cmap(len(n_cluster))
     embedding = umap.UMAP(n_neighbors=100, min_dist=0.5, random_state=12).fit_transform(X_topics)
     plt.figure(figsize=(7,5))
     plt.scatter(embedding[:, 0], embedding[:, 1],
                 c = clusters,
                 s = 10, # size
-                edgecolor=color
+                cmap = "tab20b"
                 )
-    plt.show()
+    # plt.show()
+    plt.savefig(f'result/cluster_{name}.png')
 
 # IDENTIFYING TOPIC
 class Topic_identifying:
