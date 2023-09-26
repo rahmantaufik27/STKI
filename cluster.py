@@ -34,33 +34,39 @@ class Clustering:
   def modeling_cluster(self, df):
     # vectorize
     text_raw = df["text_stemmed_stopword_without_number"].to_numpy()
-    # vectorizer = TfidfVectorizer()
-    vectorizer = TfidfVectorizer(use_idf=True, smooth_idf=True, sublinear_tf=False, ngram_range=(1,3))
-    data_vector = vectorizer.fit_transform(text_raw)
-    # truncate vector
-    svd = TruncatedSVD(n_components=2)
-    X = svd.fit_transform(data_vector)
-    # determine the number of cluster
-    km = KMeans(random_state=100)
-    visualizer = KElbowVisualizer(km, k=(1,100), timings=True)
-    visualizer.fit(X)
-    # clustering the data
-    k = visualizer.elbow_value_
-    # print("number of cluster:", k)
-    kmeans = KMeans(n_clusters = k, random_state=100)
-    kmeans.fit(X)
-    df["kluster"] = kmeans.labels_
-    clusters = kmeans.labels_.tolist()
+    # print(text_raw.shape[0])
+    n_dim_sample = text_raw.shape[0]
+    if n_dim_sample >= 10:
+      vectorizer = TfidfVectorizer(use_idf=True, smooth_idf=True, sublinear_tf=False, ngram_range=(1,3))
+      data_vector = vectorizer.fit_transform(text_raw)
+      # truncate vector
+      svd = TruncatedSVD(n_components=2)
+      X = svd.fit_transform(data_vector)
+      # print(X.shape)
+      # determine the number of cluster
+      km = KMeans(random_state=100)
+      visualizer = KElbowVisualizer(km, timings=True)
+      visualizer.fit(X)
+      # clustering the data
+      k = visualizer.elbow_value_
+      # print("number of cluster:", k)
+      kmeans = KMeans(n_clusters = k, random_state=100, algorithm='auto', max_iter=300, n_init=10)
+      kmeans.fit(X)
+      df["kluster"] = kmeans.labels_
+      clusters = kmeans.labels_.tolist()
 
-    # evaluating the cluster results
-    ss = silhouette_score(X, kmeans.labels_)
-    sc = calinski_harabasz_score(X, kmeans.labels_)
-    sd = davies_bouldin_score(X, kmeans.labels_)
-    # print(f"Silhoutte score: {ss}")
-    # print(f"Calonski Harabasz Score: {sc}")
-    # print(f"Davies Bouldin Score: {sd}")
+      # evaluating the cluster results
+      ss = silhouette_score(X, kmeans.labels_)
+      sc = calinski_harabasz_score(X, kmeans.labels_)
+      sd = davies_bouldin_score(X, kmeans.labels_)
+      # print(f"Silhoutte score: {ss}")
+      # print(f"Calonski Harabasz Score: {sc}")
+      # print(f"Davies Bouldin Score: {sd}")
 
-    return X, clusters, k, ss, sc, sd, df
+      return X, clusters, k, ss, sc, sd, df
+    else:
+      print("sample less than 10 dimensions")
+      return 0, 0, 0, 0, 0, 0, 0
 
   # VISUALIZATION THE CLUSTER
   def visualizing_cluster(self, x_vector, clusters, n_cluster, name):
